@@ -1,0 +1,127 @@
+##############
+## Commands ##
+##############
+
+##########
+#Display line terminators
+od -c filename
+
+##########
+#find everything on the system with 10.100 ignoring some dirs
+find / -path /sys -prune -o -path /dev -prune -o \
+-path /proc -prune -o -path /var/log -prune -o \
+-type f -exec grep -Hn "10\.100\.0\.230" {} \; 2>/dev/null | tee /root/found.txt
+
+##########
+#find filename, case insensitive
+find . -iname "foobar"
+
+##########
+#find files that are not bz2
+find . -type f -not -name “*.bz2” -exec ls -lh {} \;
+
+##########
+#Convert xml/xlsx to csv
+libreoffice --headless --convert-to csv $filename --outdir $outdir
+
+##########
+#prune log for only last 1500 lines using vim command
+vim "+execute \"normal! G1500kO\<esc>dgg\"" "+w" "+q" nightlyrepair.log
+
+##########
+#Extract table from mysqldump
+sed -n -e '/DROP TABLE IF EXISTS `phones`/,/UNLOCK TABLES/p' cold4db-05-11-2016-Wednesday.sql >> patch-phones.sql
+sed -i 's/INSERT INTO/INSERT IGNORE INTO/g' patch-phones.sql
+
+##########
+#Delete between 'foo' and 'bar' inclusively
+sed -i '/foo/,/bar/d' file.txt
+
+##########
+#Comment out a line in a file
+sed -e '/replicate_wild_ignore_table=asterisk.call_log/ s/^#*/#/' -i /etc/my.cnf
+
+##########
+#Clear disk cache from ram
+sync; echo 1 > /proc/sys/vm/drop_caches
+
+##########
+#Sort ls by size ascending
+ls -lSr
+#this^ is a capitol S
+
+##########
+#useradd vs adduser
+useradd-only add user name to /etc/passwd
+adduser-uses useradd and creates groups and home dirs etc
+
+##########
+#Add user to existing group
+usermod -a -G groupname user
+
+##########
+#Remove user from group
+gpasswd -d user group
+
+##########
+#Make samba user
+pdbedit -L -v
+useradd name; passwd name; smbpasswd -a name
+/etc/samba/smb.cnf: valid users = @groupname
+service samba reload
+
+##########
+#Check and enable query logging temp
+#If it only has a file name, will be in data dir
+mysql> SHOW VARIABLES LIKE '%log%';
+mysql> SET GLOBAL general_log_file = '/var/log/mysql/general.log';
+mysql> SET GLOBAL general_log = 'ON';
+#To turn back off
+mysql> SET GLOBAL general_log = 'OFF';
+
+##########
+#To skip broken sql slave query
+mysql> STOP SLAVE;
+mysql> SET GLOBAL sql_slave_skip_counter = 1;
+mysql> START SLAVE;
+mysql> SHOW SLAVE STATUS \G
+
+##########
+#Change mariadb password
+SET PASSWORD FOR 'user'@'%' = PASSWORD('newpass');
+
+##########
+#Change mysql password
+#For version => 5.7.6
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+#For version < 5.7.6
+mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('MyNewPass');
+
+##########
+#Replication vars, use only what's necessary
+mastermysql> SHOW MASTER STATUS;
+slavemysql> CHANGE MASTER TO
+    ->     MASTER_HOST='master_host_name/ip',
+    ->     MASTER_USER='replication_user_name',
+    ->     MASTER_PASSWORD='replication_password',
+    ->     MASTER_LOG_FILE='recorded_log_file_name',
+    ->     MASTER_LOG_POS=recorded_log_position;
+
+#########
+#Wipe states for specific routes on pfsense
+pfctl -k 172.30.65.0/24 && pfctl -k 63.245.47.246
+
+#############
+## tcpdump ##
+#############
+# capture port 5060 in or out one ip
+tcpdump -n -i eth1 -vvvvv "(src here and port 5060)  or (dst here and port 5060)" -w capture.pcap
+
+# capture port 5060 in or out two ip
+tcpdump -n -i eth1 -vvvvv "(src here and port 5060)  or (dst here and port 5060) or (src cho and port 5060)  or (dst cho and port 5060)" -w capture.pcap
+
+# capture everything ports 5k+
+tcpdump -i eth1 -vvvv "dst portrange 5000-65535 or src portrange 5000-65535" -w capture.pcap
+
+# capture everything
+tcpdump -i eth1 -vvvv -w capture.pcap
